@@ -256,10 +256,8 @@
 <span id="251">251</span>
 <span id="252">252</span>
 <span id="253">253</span>
-<span id="254">254</span>
-<span id="255">255</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the verifier index as [VerifierIndex].</span>
-<span class="doccomment">//! You can derive this struct from the [Index] struct.</span>
+<span class="doccomment">//! You can derive this struct from the [ProverIndex] struct.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alphas::Alphas</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::circuits</span>::{
@@ -268,7 +266,7 @@
     <span class="ident">gate::LookupsUsed</span>,
     <span class="ident">wires</span>::<span class="kw-2">*</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::prover_index::Index</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::prover_index::ProverIndex</span>;
 <span class="kw">use</span> <span class="ident">ark_ec::AffineCurve</span>;
 <span class="kw">use</span> <span class="ident">ark_ff::PrimeField</span>;
 <span class="kw">use</span> <span class="ident">ark_poly</span>::{<span class="ident">univariate::DensePolynomial</span>, <span class="ident">Radix2EvaluationDomain</span> <span class="kw">as</span> <span class="ident">D</span>};
@@ -296,13 +294,14 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LookupVerifierIndex</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">CommitmentCurve</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="ident">lookup_used</span>: <span class="ident">LookupsUsed</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">bound</span> <span class="op">=</span> <span class="string">&quot;PolyComm&lt;G&gt;: Serialize + DeserializeOwned&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="ident">lookup_tables</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PolyComm</span><span class="op">&lt;</span><span class="ident">G</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">lookup_table</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PolyComm</span><span class="op">&lt;</span><span class="ident">G</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">bound</span> <span class="op">=</span> <span class="string">&quot;PolyComm&lt;G&gt;: Serialize + DeserializeOwned&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="ident">lookup_selectors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PolyComm</span><span class="op">&lt;</span><span class="ident">G</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">serde_as</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>)]</span>
+<span class="comment">//~spec:startcode</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VerifierIndex</span><span class="op">&lt;</span><span class="ident">G</span>: <span class="ident">CommitmentCurve</span><span class="op">&gt;</span> {
     <span class="doccomment">/// evaluation domain</span>
     <span class="attribute">#[<span class="ident">serde_as</span>(<span class="kw">as</span> <span class="op">=</span> <span class="string">&quot;o1_utils::serialization::SerdeAs&quot;</span>)]</span>
@@ -378,12 +377,13 @@
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">skip</span>)]</span>
     <span class="kw">pub</span> <span class="ident">fq_sponge_params</span>: <span class="ident">ArithmeticSpongeParams</span><span class="op">&lt;</span><span class="ident">Fq</span><span class="op">&lt;</span><span class="ident">G</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
+<span class="comment">//~spec:endcode</span>
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">G</span>: <span class="ident">CommitmentCurve</span><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">G</span><span class="op">&gt;</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">G</span>: <span class="ident">CommitmentCurve</span><span class="op">&gt;</span> <span class="ident">ProverIndex</span><span class="op">&lt;</span><span class="ident">G</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">G::BaseField</span>: <span class="ident">PrimeField</span>,
 {
-    <span class="doccomment">/// Produces the [VerifierIndex] from the prover&#39;s [Index].</span>
+    <span class="doccomment">/// Produces the [VerifierIndex] from the prover&#39;s [ProverIndex].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verifier_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">VerifierIndex</span><span class="op">&lt;</span><span class="ident">G</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cs</span>.<span class="ident">domain</span>.<span class="ident">d1</span>;
         <span class="kw">let</span> <span class="ident">lookup_index</span> <span class="op">=</span> {
@@ -391,20 +391,16 @@
                 .<span class="ident">lookup_constraint_system</span>
                 .<span class="ident">as_ref</span>()
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cs</span><span class="op">|</span> <span class="ident">LookupVerifierIndex</span> {
-                    <span class="ident">lookup_used</span>: <span class="ident">cs</span>.<span class="ident">lookup_used</span>,
+                    <span class="ident">lookup_used</span>: <span class="ident">cs</span>.<span class="ident">configuration</span>.<span class="ident">lookup_used</span>,
                     <span class="ident">lookup_selectors</span>: <span class="ident">cs</span>
                         .<span class="ident">lookup_selectors</span>
                         .<span class="ident">iter</span>()
                         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">srs</span>.<span class="ident">commit_evaluations_non_hiding</span>(<span class="ident">domain</span>, <span class="ident">e</span>, <span class="prelude-val">None</span>))
                         .<span class="ident">collect</span>(),
-                    <span class="ident">lookup_tables</span>: <span class="ident">cs</span>
-                        .<span class="ident">lookup_tables8</span>
+                    <span class="ident">lookup_table</span>: <span class="ident">cs</span>
+                        .<span class="ident">lookup_table8</span>
                         .<span class="ident">iter</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                            <span class="ident">v</span>.<span class="ident">iter</span>()
-                                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">srs</span>.<span class="ident">commit_evaluations_non_hiding</span>(<span class="ident">domain</span>, <span class="ident">e</span>, <span class="prelude-val">None</span>))
-                                .<span class="ident">collect</span>()
-                        })
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">srs</span>.<span class="ident">commit_evaluations_non_hiding</span>(<span class="ident">domain</span>, <span class="ident">e</span>, <span class="prelude-val">None</span>))
                         .<span class="ident">collect</span>(),
                 })
         };
@@ -514,5 +510,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="kimchi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (335ffbfa5 2022-03-11)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="kimchi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (58f11791a 2022-03-17)" ></div>
 </body></html>
