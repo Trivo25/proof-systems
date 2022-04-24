@@ -245,21 +245,17 @@
 <span id="240">240</span>
 <span id="241">241</span>
 <span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;../README.md&quot;</span>)]</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">poseidon</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">roinput</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">mina_curves::pasta::Fp</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">poseidon</span>::{<span class="ident">PoseidonHasherKimchi</span>, <span class="ident">PoseidonHasherLegacy</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">roinput::ROInput</span>;
 
 <span class="kw">use</span> <span class="ident">ark_ff::PrimeField</span>;
-<span class="kw">use</span> <span class="ident">mina_curves::pasta::Fp</span>;
 <span class="kw">use</span> <span class="ident">o1_utils::FieldHelpers</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">roinput::ROInput</span>;
 
 <span class="doccomment">/// The domain parameter trait is used during hashing to convey extra</span>
 <span class="doccomment">/// arguments to domain string generation.  It is also used by generic signing code.</span>
@@ -312,7 +308,7 @@
 <span class="doccomment">///         roi</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     fn domain_string(_: Option&lt;&amp;Self&gt;, _: Self::D) -&gt; Option&lt;String&gt; {</span>
+<span class="doccomment">///     fn domain_string(_: Self::D) -&gt; Option&lt;String&gt; {</span>
 <span class="doccomment">///        format!(&quot;Example&quot;).into()</span>
 <span class="doccomment">///    }</span>
 <span class="doccomment">/// }</span>
@@ -328,14 +324,14 @@
 
     <span class="doccomment">/// Generate unique domain string of length `&lt;= 20`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The length bound is guarded by an assertion, but the uniqueness bound must</span>
+    <span class="doccomment">/// The length bound is guarded by an assertion, but uniqueness must</span>
     <span class="doccomment">/// be enforced by the developer implementing the traits (see [`Hashable`] for</span>
-    <span class="doccomment">///  more details). The domain string may be parameterized by the contents of</span>
-    <span class="doccomment">/// `this` and/or the generic `domain_param` argument.</span>
+    <span class="doccomment">/// more details). The domain string may be parameterized by the contents of</span>
+    <span class="doccomment">/// the generic `domain_param` argument.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// **Note:** You should always return `Some(String)`. A `None` return value</span>
     <span class="doccomment">/// is only used for testing.</span>
-    <span class="kw">fn</span> <span class="ident">domain_string</span>(<span class="ident">this</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">domain_param</span>: <span class="ident"><span class="self">Self</span>::D</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">domain_string</span>(<span class="ident">domain_param</span>: <span class="ident"><span class="self">Self</span>::D</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Interface for hashing [`Hashable`] inputs</span>
@@ -347,8 +343,7 @@
 <span class="doccomment">/// Example usage</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use mina_hasher::{create_legacy, Hashable, Hasher, ROInput};</span>
-<span class="doccomment">/// use mina_curves::pasta::Fp;</span>
+<span class="doccomment">/// use mina_hasher::{create_legacy, Fp, Hashable, Hasher, ROInput};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// #[derive(Clone)]</span>
 <span class="doccomment">/// struct Something;</span>
@@ -362,7 +357,7 @@
 <span class="doccomment">///         roi</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     fn domain_string(_: Option&lt;&amp;Self&gt;, id: Self::D) -&gt; Option&lt;String&gt; {</span>
+<span class="doccomment">///     fn domain_string(id: Self::D) -&gt; Option&lt;String&gt; {</span>
 <span class="doccomment">///         format!(&quot;Something {}&quot;, id).into()</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">/// }</span>
@@ -373,7 +368,7 @@
 <span class="doccomment">///</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Hasher</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hashable</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Set the initial state based on domain separation string</span>
-    <span class="doccomment">/// generated from `H::domain_string(None, domain_param)`</span>
+    <span class="doccomment">/// generated from `H::domain_string(domain_param)`</span>
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">domain_param</span>: <span class="ident">H::D</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">Hasher</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>;
 
     <span class="doccomment">/// Restore the initial state that was set most recently</span>
@@ -417,15 +412,12 @@
 }
 
 <span class="doccomment">/// Create a legacy hasher context</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_legacy</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hashable</span><span class="op">&gt;</span>(<span class="ident">domain_param</span>: <span class="ident">H::D</span>) -&gt; <span class="kw">impl</span> <span class="ident">Hasher</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">H::D</span>: <span class="ident">DomainParameter</span>,
-{
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_legacy</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hashable</span><span class="op">&gt;</span>(<span class="ident">domain_param</span>: <span class="ident">H::D</span>) -&gt; <span class="ident">PoseidonHasherLegacy</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span> {
     <span class="ident">poseidon::new_legacy</span>::<span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>(<span class="ident">domain_param</span>)
 }
 
 <span class="doccomment">/// Create an experimental kimchi hasher context</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_kimchi</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hashable</span><span class="op">&gt;</span>(<span class="ident">domain_param</span>: <span class="ident">H::D</span>) -&gt; <span class="kw">impl</span> <span class="ident">Hasher</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_kimchi</span><span class="op">&lt;</span><span class="ident">H</span>: <span class="ident">Hashable</span><span class="op">&gt;</span>(<span class="ident">domain_param</span>: <span class="ident">H::D</span>) -&gt; <span class="ident">PoseidonHasherKimchi</span><span class="op">&lt;</span><span class="ident">H</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">H::D</span>: <span class="ident">DomainParameter</span>,
 {
@@ -449,13 +441,11 @@
 
             <span class="kw">fn</span> <span class="ident">to_roinput</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ROInput</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">roi</span> <span class="op">=</span> <span class="ident">ROInput::new</span>();
-                <span class="ident">roi</span>.<span class="ident">append_u32</span>(<span class="self">self</span>.<span class="ident">x</span>);
-                <span class="ident">roi</span>.<span class="ident">append_u64</span>(<span class="self">self</span>.<span class="ident">y</span>);
-
+                <span class="ident">roi</span>.<span class="ident">append_u32</span>(<span class="self">self</span>.<span class="ident">x</span>).<span class="ident">append_u64</span>(<span class="self">self</span>.<span class="ident">y</span>);
                 <span class="ident">roi</span>
             }
 
-            <span class="kw">fn</span> <span class="ident">domain_string</span>(<span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">id</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">domain_string</span>(<span class="ident">id</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
                 <span class="macro">format!</span>(<span class="string">&quot;Foo {}&quot;</span>, <span class="ident">id</span>).<span class="ident">into</span>()
             }
         }
@@ -498,5 +488,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mina_hasher" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0-nightly (1d9c262ee 2022-03-26)" ></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mina_hasher" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (de1026a67 2022-04-23)" ></div>
 </body></html>
