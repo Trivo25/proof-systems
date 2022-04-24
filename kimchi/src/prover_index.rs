@@ -107,9 +107,8 @@ pub mod testing {
         lookup_tables: Vec<LookupTable<Fp>>,
     ) -> ProverIndex<Affine> {
         let fp_sponge_params = oracle::pasta::fp_kimchi::params();
-        let cs = ConstraintSystem::<Fp>::create(gates, lookup_tables, fp_sponge_params, public)
-            .unwrap()
-            .unwrap();
+        let cs =
+            ConstraintSystem::<Fp>::create(gates, lookup_tables, fp_sponge_params, public).unwrap();
 
         let mut srs = SRS::<Affine>::create(cs.domain.d1.size as usize);
         srs.add_lagrange_basis(cs.domain.d1);
