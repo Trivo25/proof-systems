@@ -39,14 +39,17 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the [ProofError] type.</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the [ProverError] type.</span>
 
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
 
 <span class="doccomment">/// Errors that can arise when creating a proof</span>
 <span class="comment">// TODO(mimoo): move this out of oracle</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProofError</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ProverError</span> {
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;the circuit is too large&quot;</span>)]</span>
     <span class="ident">NoRoomForZkInWitness</span>,
 
@@ -61,6 +64,9 @@
 
     <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;the lookup failed to find a match in the table&quot;</span>)]</span>
     <span class="ident">ValueNotInTable</span>,
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;the lookup contraint system could not be constructed&quot;</span>)]</span>
+    <span class="ident">SetupError</span>,
 }
 
 <span class="doccomment">/// Errors that can arise when verifying a proof</span>
