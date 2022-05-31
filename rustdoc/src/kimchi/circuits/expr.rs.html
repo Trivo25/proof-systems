@@ -3,7 +3,9 @@
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../kimchi/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../kimchi/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../kimchi/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
+                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2229,6 +2231,44 @@
 <span id="2224">2224</span>
 <span id="2225">2225</span>
 <span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">circuits</span>::{
         <span class="ident">domains::EvaluationDomains</span>,
@@ -2251,7 +2291,29 @@
     <span class="ident">collections</span>::{<span class="ident">HashMap</span>, <span class="ident">HashSet</span>},
     <span class="ident">ops::MulAssign</span>,
 };
+<span class="kw">use</span> <span class="ident">thiserror::Error</span>;
 <span class="kw">use</span> <span class="ident">CurrOrNext</span>::{<span class="ident">Curr</span>, <span class="ident">Next</span>};
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Error</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExprError</span> {
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Empty stack&quot;</span>)]</span>
+    <span class="ident">EmptyStack</span>,
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Lookup should not have been used&quot;</span>)]</span>
+    <span class="ident">LookupShouldNotBeUsed</span>,
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Linearization failed (needed {0:?} evaluated at the {1:?} row&quot;</span>)]</span>
+    <span class="ident">MissingEvaluation</span>(<span class="ident">Column</span>, <span class="ident">CurrOrNext</span>),
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Cannot get index evaluation {0:?} (should have been linearized away)&quot;</span>)]</span>
+    <span class="ident">MissingIndexEvaluation</span>(<span class="ident">Column</span>),
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;Linearization failed&quot;</span>)]</span>
+    <span class="ident">FailedLinearization</span>,
+
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;runtime table not available&quot;</span>)]</span>
+    <span class="ident">MissingRuntime</span>,
+}
 
 <span class="doccomment">/// The collection of constants required to evaluate an `Expr`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Constants</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
@@ -2263,7 +2325,7 @@
     <span class="kw">pub</span> <span class="ident">gamma</span>: <span class="ident">F</span>,
     <span class="doccomment">/// The challenge joint_combiner which is used to combine</span>
     <span class="doccomment">/// joint lookup tables.</span>
-    <span class="kw">pub</span> <span class="ident">joint_combiner</span>: <span class="ident">F</span>,
+    <span class="kw">pub</span> <span class="ident">joint_combiner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The endomorphism coefficient</span>
     <span class="kw">pub</span> <span class="ident">endo_coefficient</span>: <span class="ident">F</span>,
     <span class="doccomment">/// The MDS matrix</span>
@@ -2282,6 +2344,10 @@
     <span class="kw">pub</span> <span class="ident">selectors</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Evaluations</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The evaluations of the combined lookup table polynomial.</span>
     <span class="kw">pub</span> <span class="ident">table</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Evaluations</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The evaluations of the optional runtime selector polynomial.</span>
+    <span class="kw">pub</span> <span class="ident">runtime_selector</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Evaluations</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// The evaluations of the optional runtime table.</span>
+    <span class="kw">pub</span> <span class="ident">runtime_table</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Evaluations</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// The collection of polynomials (all in evaluation form) and constants</span>
@@ -2322,6 +2388,8 @@
             <span class="ident">LookupSorted</span>(<span class="ident">i</span>) =&gt; <span class="ident">lookup</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">l</span>.<span class="ident">sorted</span>[<span class="kw-2">*</span><span class="ident">i</span>]),
             <span class="ident">LookupAggreg</span> =&gt; <span class="ident">lookup</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">aggreg</span>),
             <span class="ident">LookupTable</span> =&gt; <span class="ident">lookup</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">table</span>),
+            <span class="ident">LookupRuntimeSelector</span> =&gt; <span class="ident">lookup</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">runtime_selector</span>),
+            <span class="ident">LookupRuntimeTable</span> =&gt; <span class="ident">lookup</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">runtime_table</span>),
             <span class="ident">Index</span>(<span class="ident">t</span>) =&gt; <span class="kw">match</span> <span class="self">self</span>.<span class="ident">index</span>.<span class="ident">get</span>(<span class="ident">t</span>) {
                 <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
                 <span class="prelude-val">Some</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
@@ -2357,6 +2425,8 @@
     <span class="ident">LookupAggreg</span>,
     <span class="ident">LookupTable</span>,
     <span class="ident">LookupKindIndex</span>(<span class="ident">usize</span>),
+    <span class="ident">LookupRuntimeSelector</span>,
+    <span class="ident">LookupRuntimeTable</span>,
     <span class="ident">Index</span>(<span class="ident">GateType</span>),
     <span class="ident">Coefficient</span>(<span class="ident">usize</span>),
 }
@@ -2377,6 +2447,8 @@
             <span class="ident">Column::LookupAggreg</span> =&gt; <span class="string">&quot;a&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">Column::LookupTable</span> =&gt; <span class="string">&quot;t&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">Column::LookupKindIndex</span>(<span class="ident">i</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;k_{{{}}}&quot;</span>, <span class="ident">i</span>),
+            <span class="ident">Column::LookupRuntimeSelector</span> =&gt; <span class="string">&quot;rts&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">Column::LookupRuntimeTable</span> =&gt; <span class="string">&quot;rt&quot;</span>.<span class="ident">to_string</span>(),
             <span class="ident">Column::Index</span>(<span class="ident">gate</span>) =&gt; {
                 <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">gate</span>)
             }
@@ -2490,7 +2562,7 @@
             <span class="ident">Alpha</span> =&gt; <span class="ident">c</span>.<span class="ident">alpha</span>,
             <span class="ident">Beta</span> =&gt; <span class="ident">c</span>.<span class="ident">beta</span>,
             <span class="ident">Gamma</span> =&gt; <span class="ident">c</span>.<span class="ident">gamma</span>,
-            <span class="ident">JointCombiner</span> =&gt; <span class="ident">c</span>.<span class="ident">joint_combiner</span>,
+            <span class="ident">JointCombiner</span> =&gt; <span class="ident">c</span>.<span class="ident">joint_combiner</span>.<span class="ident">expect</span>(<span class="string">&quot;joint lookup was not expected&quot;</span>),
             <span class="ident">EndoCoefficient</span> =&gt; <span class="ident">c</span>.<span class="ident">endo_coefficient</span>,
             <span class="ident">Mds</span> { <span class="ident">row</span>, <span class="ident">col</span> } =&gt; <span class="ident">c</span>.<span class="ident">mds</span>[<span class="kw-2">*</span><span class="ident">row</span>][<span class="kw-2">*</span><span class="ident">col</span>],
             <span class="ident">Literal</span>(<span class="ident">x</span>) =&gt; <span class="kw-2">*</span><span class="ident">x</span>,
@@ -2627,27 +2699,24 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Variable</span> {
-    <span class="kw">fn</span> <span class="ident">evaluate</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">F</span>: <span class="ident">Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">evals</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">evaluate</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Field</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">evals</span>: <span class="kw-2">&amp;</span>[<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">ExprError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">evals</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">evals</span>[<span class="self">self</span>.<span class="ident">row</span>.<span class="ident">shift</span>()];
         <span class="kw">use</span> <span class="ident">Column</span>::<span class="kw-2">*</span>;
         <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">evals</span>
             .<span class="ident">lookup</span>
             .<span class="ident">as_ref</span>()
-            .<span class="ident">ok_or</span>(<span class="string">&quot;Lookup should not have been used&quot;</span>);
+            .<span class="ident">ok_or</span>(<span class="ident">ExprError::LookupShouldNotBeUsed</span>);
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">col</span> {
             <span class="ident">Witness</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">evals</span>.<span class="ident">w</span>[<span class="ident">i</span>]),
             <span class="ident">Z</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">evals</span>.<span class="ident">z</span>),
             <span class="ident">LookupSorted</span>(<span class="ident">i</span>) =&gt; <span class="ident">l</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">sorted</span>[<span class="ident">i</span>]),
             <span class="ident">LookupAggreg</span> =&gt; <span class="ident">l</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">aggreg</span>),
             <span class="ident">LookupTable</span> =&gt; <span class="ident">l</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">table</span>),
+            <span class="ident">LookupRuntimeTable</span> =&gt; <span class="ident">l</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident">l</span>.<span class="ident">runtime</span>.<span class="ident">ok_or</span>(<span class="ident">ExprError::MissingRuntime</span>)),
             <span class="ident">Index</span>(<span class="ident">GateType::Poseidon</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">evals</span>.<span class="ident">poseidon_selector</span>),
             <span class="ident">Index</span>(<span class="ident">GateType::Generic</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">evals</span>.<span class="ident">generic_selector</span>),
-            <span class="ident">Index</span>(<span class="ident">GateType::CairoClaim</span>)
-            <span class="op">|</span> <span class="ident">Index</span>(<span class="ident">GateType::CairoInstruction</span>)
-            <span class="op">|</span> <span class="ident">Index</span>(<span class="ident">GateType::CairoFlags</span>)
-            <span class="op">|</span> <span class="ident">Index</span>(<span class="ident">GateType::CairoTransition</span>) =&gt; <span class="macro">todo!</span>(),
-            <span class="ident">Coefficient</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">LookupKindIndex</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Index</span>(<span class="kw">_</span>) =&gt; {
-                <span class="prelude-val">Err</span>(<span class="string">&quot;Cannot get index evaluation (should have been linearized away)&quot;</span>)
+            <span class="ident">Coefficient</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">LookupKindIndex</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">LookupRuntimeSelector</span> <span class="op">|</span> <span class="ident">Index</span>(<span class="kw">_</span>) =&gt; {
+                <span class="prelude-val">Err</span>(<span class="ident">ExprError::MissingIndexEvaluation</span>(<span class="self">self</span>.<span class="ident">col</span>))
             }
         }
     }
@@ -2655,13 +2724,13 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FftField</span><span class="op">&gt;</span> <span class="ident">PolishToken</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Evaluate an RPN expression to a field element.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate</span>(
         <span class="ident">toks</span>: <span class="kw-2">&amp;</span>[<span class="ident">PolishToken</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>],
         <span class="ident">d</span>: <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
         <span class="ident">pt</span>: <span class="ident">F</span>,
         <span class="ident">evals</span>: <span class="kw-2">&amp;</span>[<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>],
         <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Constants</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="ident">str</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">ExprError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span> <span class="op">=</span> <span class="macro">vec!</span>[];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
@@ -2671,7 +2740,9 @@
                 <span class="ident">Alpha</span> =&gt; <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">c</span>.<span class="ident">alpha</span>),
                 <span class="ident">Beta</span> =&gt; <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">c</span>.<span class="ident">beta</span>),
                 <span class="ident">Gamma</span> =&gt; <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">c</span>.<span class="ident">gamma</span>),
-                <span class="ident">JointCombiner</span> =&gt; <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">c</span>.<span class="ident">joint_combiner</span>),
+                <span class="ident">JointCombiner</span> =&gt; {
+                    <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">c</span>.<span class="ident">joint_combiner</span>.<span class="ident">expect</span>(<span class="string">&quot;no joint lookup was expected&quot;</span>))
+                }
                 <span class="ident">EndoCoefficient</span> =&gt; <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">c</span>.<span class="ident">endo_coefficient</span>),
                 <span class="ident">Mds</span> { <span class="ident">row</span>, <span class="ident">col</span> } =&gt; <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">c</span>.<span class="ident">mds</span>[<span class="kw-2">*</span><span class="ident">row</span>][<span class="kw-2">*</span><span class="ident">col</span>]),
                 <span class="ident">VanishesOnLast4Rows</span> =&gt; <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">eval_vanishes_on_last_4_rows</span>(<span class="ident">d</span>, <span class="ident">pt</span>)),
@@ -2689,18 +2760,18 @@
                     <span class="ident">stack</span>[<span class="ident">i</span>] <span class="op">=</span> <span class="ident">stack</span>[<span class="ident">i</span>].<span class="ident">pow</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">*</span><span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>]);
                 }
                 <span class="ident">Add</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="string">&quot;Empty stack&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="string">&quot;Empty stack&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="ident">ExprError::EmptyStack</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="ident">ExprError::EmptyStack</span>)<span class="question-mark">?</span>;
                     <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">x</span> <span class="op">+</span> <span class="ident">y</span>);
                 }
                 <span class="ident">Mul</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="string">&quot;Empty stack&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="string">&quot;Empty stack&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="ident">ExprError::EmptyStack</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="ident">ExprError::EmptyStack</span>)<span class="question-mark">?</span>;
                     <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">x</span> <span class="op">*</span> <span class="ident">y</span>);
                 }
                 <span class="ident">Sub</span> =&gt; {
-                    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="string">&quot;Empty stack&quot;</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="string">&quot;Empty stack&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="ident">ExprError::EmptyStack</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">stack</span>.<span class="ident">pop</span>().<span class="ident">ok_or</span>(<span class="ident">ExprError::EmptyStack</span>)<span class="question-mark">?</span>;
                     <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">x</span> <span class="op">-</span> <span class="ident">y</span>);
                 }
                 <span class="ident">Store</span> =&gt; {
@@ -2895,7 +2966,7 @@
         <span class="ident">res_domain</span>: (<span class="ident">Domain</span>, <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>),
         <span class="ident">g</span>: <span class="ident">G</span>,
     ) -&gt; <span class="ident">Evaluations</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">res_domain</span>.<span class="number">1</span>.<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">res_domain</span>.<span class="number">1</span>.<span class="ident">size</span>();
         <span class="ident">Evaluations</span>::<span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::from_vec_and_domain</span>(
             (<span class="number">0</span>..<span class="ident">n</span>).<span class="ident">into_par_iter</span>().<span class="ident">map</span>(<span class="ident">g</span>).<span class="ident">collect</span>(),
             <span class="ident">res_domain</span>.<span class="number">1</span>,
@@ -2938,7 +3009,7 @@
                     <span class="ident">shift</span>,
                 },
             ) =&gt; {
-                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">res_domain</span>.<span class="number">1</span>.<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>;
+                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">res_domain</span>.<span class="number">1</span>.<span class="ident">size</span>();
                 <span class="kw">let</span> <span class="ident">scale</span> <span class="op">=</span> (<span class="ident">domain</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">/</span> (<span class="ident">res_domain</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>);
                 <span class="macro">assert!</span>(<span class="ident">scale</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
                 <span class="kw">let</span> <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">n</span>)
@@ -3015,7 +3086,7 @@
                 <span class="kw">let</span> <span class="ident">scale2</span> <span class="op">=</span> (<span class="ident">d2</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">/</span> (<span class="ident">res_domain</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">usize</span>);
                 <span class="macro">assert!</span>(<span class="ident">scale2</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
 
-                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">res_domain</span>.<span class="number">1</span>.<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>;
+                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">res_domain</span>.<span class="number">1</span>.<span class="ident">size</span>();
                 <span class="kw">let</span> <span class="ident">v</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">0</span>..<span class="ident">n</span>)
                     .<span class="ident">into_par_iter</span>()
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> {
@@ -3413,7 +3484,7 @@
         <span class="ident">pt</span>: <span class="ident">F</span>,
         <span class="ident">evals</span>: <span class="kw-2">&amp;</span>[<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>],
         <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Environment</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">ExprError</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">evaluate_</span>(<span class="ident">d</span>, <span class="ident">pt</span>, <span class="ident">evals</span>, <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">constants</span>)
     }
 
@@ -3424,7 +3495,7 @@
         <span class="ident">pt</span>: <span class="ident">F</span>,
         <span class="ident">evals</span>: <span class="kw-2">&amp;</span>[<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>],
         <span class="ident">c</span>: <span class="kw-2">&amp;</span><span class="ident">Constants</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">ExprError</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">Expr</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Double</span>(<span class="ident">x</span>) =&gt; <span class="ident">x</span>.<span class="ident">evaluate_</span>(<span class="ident">d</span>, <span class="ident">pt</span>, <span class="ident">evals</span>, <span class="ident">c</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">double</span>()),
@@ -3473,7 +3544,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FftField</span><span class="op">&gt;</span> <span class="ident">Expr</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Evaluate an expression into a field element.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">d</span>: <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>, <span class="ident">pt</span>: <span class="ident">F</span>, <span class="ident">evals</span>: <span class="kw-2">&amp;</span>[<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evaluate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">d</span>: <span class="ident">D</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>, <span class="ident">pt</span>: <span class="ident">F</span>, <span class="ident">evals</span>: <span class="kw-2">&amp;</span>[<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">ExprError</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <span class="ident">Expr</span>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Constant</span>(<span class="ident">x</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">x</span>),
@@ -3715,7 +3786,7 @@
         <span class="ident">evals</span>: <span class="kw-2">&amp;</span>[<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>],
     ) -&gt; (<span class="ident">F</span>, <span class="ident">DensePolynomial</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">cs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">constants</span>;
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">domain</span>.<span class="ident">d1</span>.<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">domain</span>.<span class="ident">d1</span>.<span class="ident">size</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">F::zero</span>(); <span class="ident">n</span>];
         <span class="self">self</span>.<span class="ident">index_terms</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span>(<span class="ident">idx</span>, <span class="ident">c</span>)<span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">PolishToken::evaluate</span>(<span class="ident">c</span>, <span class="ident">env</span>.<span class="ident">domain</span>.<span class="ident">d1</span>, <span class="ident">pt</span>, <span class="ident">evals</span>, <span class="ident">cs</span>).<span class="ident">unwrap</span>();
@@ -3745,7 +3816,7 @@
         <span class="ident">evals</span>: <span class="kw-2">&amp;</span>[<span class="ident">ProofEvaluations</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>],
     ) -&gt; (<span class="ident">F</span>, <span class="ident">DensePolynomial</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">cs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">constants</span>;
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">domain</span>.<span class="ident">d1</span>.<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">domain</span>.<span class="ident">d1</span>.<span class="ident">size</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">F::zero</span>(); <span class="ident">n</span>];
         <span class="self">self</span>.<span class="ident">index_terms</span>.<span class="ident">iter</span>().<span class="ident">for_each</span>(<span class="op">|</span>(<span class="ident">idx</span>, <span class="ident">c</span>)<span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">evaluate_</span>(<span class="ident">env</span>.<span class="ident">domain</span>.<span class="ident">d1</span>, <span class="ident">pt</span>, <span class="ident">evals</span>, <span class="ident">cs</span>).<span class="ident">unwrap</span>();
@@ -3921,7 +3992,10 @@
     <span class="doccomment">/// this function computes `lin_or_err(factor_{V_0}(e))`, although it does not</span>
     <span class="doccomment">/// compute it in that way. Instead, it computes it by reducing the expression into</span>
     <span class="doccomment">/// a sum of monomials with `F` coefficients, and then factors the monomials.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">linearize</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">evaluated</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Column</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Linearization</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">linearize</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">evaluated</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Column</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Linearization</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">ExprError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Column</span>, <span class="ident">Expr</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constant_term</span>: <span class="ident">Expr</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::zero</span>();
         <span class="kw">let</span> <span class="ident">monomials</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">monomials</span>(<span class="kw-2">&amp;</span><span class="ident">evaluated</span>);
@@ -3936,9 +4010,7 @@
                 <span class="kw">let</span> <span class="ident">var</span> <span class="op">=</span> <span class="ident">unevaluated</span>.<span class="ident">remove</span>(<span class="number">0</span>);
                 <span class="kw">match</span> <span class="ident">var</span>.<span class="ident">row</span> {
                     <span class="ident">Next</span> =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                            <span class="string">&quot;Linearization failed (needed polynomial value at \&quot;next\&quot; row)&quot;</span>,
-                        )
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ExprError::MissingEvaluation</span>(<span class="ident">var</span>.<span class="ident">col</span>, <span class="ident">var</span>.<span class="ident">row</span>));
                     }
                     <span class="ident">Curr</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">res</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">var</span>.<span class="ident">col</span>) {
@@ -3960,7 +4032,7 @@
                     }
                 }
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Linearization failed&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ExprError::FailedLinearization</span>);
             }
         }
         <span class="prelude-val">Ok</span>(<span class="ident">Linearization</span> {
@@ -4336,6 +4408,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">boolean</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">Field</span><span class="op">&gt;</span>(<span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">E</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>) -&gt; <span class="ident">E</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
         <span class="ident">b</span>.<span class="ident">clone</span>().<span class="ident">square</span>() <span class="op">-</span> <span class="ident">b</span>.<span class="ident">clone</span>()
     }
+
+    <span class="doccomment">/// Crumb constraint for 2-bit value x</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">crumb</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FftField</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span><span class="ident">E</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>) -&gt; <span class="ident">E</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
+        <span class="comment">// Assert x \in [0,3] i.e. assert x*(x - 1)*(x - 2)*(x - 3) == 0</span>
+        <span class="ident">x</span>.<span class="ident">clone</span>() <span class="op">*</span> (<span class="ident">x</span>.<span class="ident">clone</span>() <span class="op">-</span> <span class="ident">E::one</span>()) <span class="op">*</span> (<span class="ident">x</span>.<span class="ident">clone</span>() <span class="op">-</span> <span class="number">2u64</span>.<span class="ident">into</span>()) <span class="op">*</span> (<span class="ident">x</span>.<span class="ident">clone</span>() <span class="op">-</span> <span class="number">3u64</span>.<span class="ident">into</span>())
+    }
 }
 
 <span class="comment">//</span>
@@ -4437,7 +4515,7 @@
                 <span class="ident">alpha</span>: <span class="ident">one</span>,
                 <span class="ident">beta</span>: <span class="ident">one</span>,
                 <span class="ident">gamma</span>: <span class="ident">one</span>,
-                <span class="ident">joint_combiner</span>: <span class="ident">one</span>,
+                <span class="ident">joint_combiner</span>: <span class="prelude-val">None</span>,
                 <span class="ident">endo_coefficient</span>: <span class="ident">one</span>,
                 <span class="ident">mds</span>: <span class="macro">vec!</span>[<span class="macro">vec!</span>[]],
             },
@@ -4456,5 +4534,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="kimchi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (de1026a67 2022-04-23)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="kimchi" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (c35035cef 2022-05-30)" ></div>
 </body></html>
